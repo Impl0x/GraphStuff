@@ -70,14 +70,14 @@ type Graph (nodeList : Node list) =
             a.AddNeighbor (b, cost)
             b.AddNeighbor (a, cost)
 
+/// Implementation of Dijkstra's algorithm. Evaluates the graph and returns the cost from start to finish
+/// as well as the names of each node in the optimal path.
 let dijkstra (graph : Graph, startNode : Node, endNode : Node) =
     let infinity = Double.PositiveInfinity
 
     /// Set of all unvisited nodes in the graph
     let unvisited = HashSet<Node> ()
-
     let nodeDistances = Dictionary<Node, float> ()
-
     for node in graph.Nodes do
         if node = startNode then nodeDistances.Add (node, 0.0)
         else nodeDistances.Add (node, infinity)
@@ -94,10 +94,9 @@ let dijkstra (graph : Graph, startNode : Node, endNode : Node) =
 
     /// Evaluates the tentative distances of each of the current node's neighbors and updates nodeDistances if necessary.
     let evalNeighbors (currentNode : Node) =
-        printf "Evaluating node %s\n" (currentNode.ToString ())
+        //printf "Evaluating node %s\n" (currentNode.ToString ())
         let currentNeighbors = HashSet<Node> ()
-        for node in currentNode.Neighbors do 
-            currentNeighbors.Add(node) |> ignore
+        for node in currentNode.Neighbors do currentNeighbors.Add(node) |> ignore
 
         let validNeighbors = new HashSet<Node> ()
         for node in unvisited do validNeighbors.Add node |> ignore
@@ -110,17 +109,18 @@ let dijkstra (graph : Graph, startNode : Node, endNode : Node) =
                 nodeDistances.Add (neighbor, neighborDist + (getStoredDist currentNode).Value)
         unvisited.Remove currentNode |> ignore
 
-    let rec loop (currentNode : Node) =
+    let rec loop (currentNode : Node) (travelPath : Node list) =
         evalNeighbors currentNode
-        if (unvisited.Contains endNode) = false then (getStoredDist endNode)
-        elif (getStoredDist (minDist ())).Value = infinity then None
+        if (unvisited.Contains endNode) = false then (getStoredDist endNode, (travelPath |> List.map (fun (x : Node) -> x.ToString ()) |> List.rev))
+        elif (getStoredDist (minDist ())).Value = infinity then (None, [])
         else
-            loop (minDist ())
+            let minNode = minDist ()
+            loop minNode (minNode::travelPath)
 
-    loop startNode
+    loop startNode [startNode]
 
 let run () =
-    let nodeList = List<Node> ()
+    /// Implementation of the graph used in the wikipedia page for Dijkstra's algorithm.
     let graph = Graph []
     for i in [1 .. 6] do graph.AddNode (Node i)
     graph.TwoWayPath (graph.Nodes.Item 0, graph.Nodes.Item 1, 7.0)
@@ -133,6 +133,8 @@ let run () =
     graph.TwoWayPath (graph.Nodes.Item 3, graph.Nodes.Item 4, 6.0)
     graph.TwoWayPath (graph.Nodes.Item 4, graph.Nodes.Item 5, 9.0)
 
-    let a = dijkstra (graph, graph.Nodes.Item 0, graph.Nodes.Item 4)
-    printf "Cost: %f" a.Value
+    let cost, travelPath = dijkstra (graph, graph.Nodes.Item 0, graph.Nodes.Item 4)
+
+    printf "Finding path between %s and %s\n" ((graph.Nodes.Item 0).ToString()) ((graph.Nodes.Item 4).ToString())
+    printf "Cost: %f\nTravel Path: %A\n" cost.Value travelPath
     Console.ReadKey true |> ignore
