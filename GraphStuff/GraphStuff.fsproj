@@ -51,6 +51,7 @@
     <Compile Include="BST.fs" />
     <Compile Include="Graph.fs" />
     <Compile Include="Program.fs" />
+    <Compile Include="AVLTree.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
